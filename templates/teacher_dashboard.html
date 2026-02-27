@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<title>Risk2Rise Teacher Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+
+*{
+font-family:Poppins;
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
+background:linear-gradient(135deg,#020617,#0f172a);
+color:white;
+padding:20px;
+
+}
+
+
+/* HEADER */
+
+.header{
+
+text-align:center;
+font-size:32px;
+color:cyan;
+margin-bottom:20px;
+
+}
+
+
+/* STATS */
+
+.stats{
+
+display:flex;
+justify-content:center;
+gap:20px;
+margin-bottom:20px;
+
+}
+
+.card{
+
+width:180px;
+background:rgba(255,255,255,0.05);
+padding:20px;
+border-radius:15px;
+text-align:center;
+box-shadow:0 0 15px rgba(0,255,255,0.2);
+
+}
+
+
+/* SMALL CHART */
+
+.chart-box{
+
+width:260px;
+margin:20px auto;
+
+background:rgba(255,255,255,0.05);
+padding:15px;
+border-radius:15px;
+
+}
+
+
+/* SEARCH */
+
+.search{
+
+text-align:center;
+margin:20px;
+
+}
+
+.search input{
+
+padding:10px;
+width:250px;
+border-radius:10px;
+border:none;
+
+}
+
+
+/* TABLE */
+
+table{
+
+width:70%;
+margin:auto;
+border-collapse:collapse;
+
+background:rgba(255,255,255,0.05);
+
+border-radius:10px;
+
+overflow:hidden;
+
+}
+
+th{
+
+background:cyan;
+color:black;
+padding:12px;
+
+}
+
+td{
+
+padding:12px;
+text-align:center;
+
+}
+
+tr:hover{
+
+background:rgba(0,255,255,0.1);
+
+}
+
+
+/* RISK COLORS */
+
+.low{color:#22c55e;font-weight:bold;}
+.medium{color:#eab308;font-weight:bold;}
+.high{color:#ef4444;font-weight:bold;}
+
+
+/* BUTTON */
+
+button{
+
+background:cyan;
+border:none;
+padding:6px 14px;
+border-radius:8px;
+cursor:pointer;
+
+}
+
+button:hover{
+
+background:white;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+Teacher Dashboard
+
+</div>
+
+
+
+<!-- STATS -->
+
+<div class="stats">
+
+<div class="card">
+
+Low Risk
+
+<h2>{{low}}</h2>
+
+</div>
+
+
+<div class="card">
+
+Medium Risk
+
+<h2>{{medium}}</h2>
+
+</div>
+
+
+<div class="card">
+
+High Risk
+
+<h2>{{high}}</h2>
+
+</div>
+
+</div>
+
+
+
+<!-- SMALL GRAPH -->
+
+<div class="chart-box">
+
+<canvas id="riskChart"></canvas>
+
+</div>
+
+
+
+<!-- SEARCH -->
+
+<div class="search">
+
+<input type="text" id="search" placeholder="Search Student ID">
+
+</div>
+
+
+
+<!-- TABLE -->
+
+<table id="table">
+
+<tr>
+
+<th>Student ID</th>
+<th>Attendance</th>
+<th>Risk</th>
+<th>Send</th>
+
+</tr>
+
+
+{% for s in students %}
+
+<tr>
+
+<td>{{s.id}}</td>
+
+<td>{{s.attendance}}</td>
+
+<td>
+
+<span class="{{s.risk|lower}}">
+
+{{s.risk}}
+
+</span>
+
+</td>
+
+
+<td>
+
+<button onclick="sendMail('{{s.email}}','{{s.risk}}','{{s.id}}')">
+
+Send
+
+</button>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+
+
+<script>
+
+
+// SMALL DOUGHNUT CHART
+
+new Chart(document.getElementById("riskChart"),{
+
+type:"doughnut",
+
+data:{
+
+labels:["Low","Medium","High"],
+
+datasets:[{
+
+data:[{{low}},{{medium}},{{high}}],
+
+backgroundColor:
+
+["#22c55e","#eab308","#ef4444"]
+
+}]
+
+},
+
+options:{
+
+plugins:{
+
+legend:{
+
+labels:{color:"white"}
+
+}
+
+}
+
+}
+
+});
+
+
+
+
+// SEARCH
+
+document.getElementById("search")
+
+.addEventListener("keyup",
+
+function(){
+
+let value=this.value.toLowerCase();
+
+let rows=document.querySelectorAll("#table tr");
+
+rows.forEach((row,i)=>{
+
+if(i===0)return;
+
+row.style.display=
+
+row.innerText.toLowerCase().includes(value)?
+
+"": "none";
+
+});
+
+});
+
+
+
+
+// MAIL
+
+function sendMail(email,risk,id){
+
+fetch(`/send_mail/${email}/${risk}/${id}`)
+
+.then(res=>res.text())
+
+.then(data=>{
+
+Swal.fire(
+
+"Success",
+
+"Mail Sent Successfully",
+
+"success"
+
+)
+
+})
+
+}
+
+
+</script>
+
+
+</body>
+</html>
